@@ -33,6 +33,21 @@ docker build -t bus-hub . && docker run -p 3001:3001 -v bus-hub-data:/data bus-h
 
 La configuration se fait par variables d'environnement : voir [.env.example](.env.example).
 
+### Vercel
+
+[vercel.json](vercel.json) déploie le dépôt comme un seul projet Vercel à deux services :
+
+- `server` : l'API Fastify, exécutée comme Vercel Function et publique sous `/api/*` ;
+- `web` : le front Vite en statique, sur toutes les autres routes, avec un fallback vers `index.html`.
+
+Pour tester les deux ensemble en local :
+
+```bash
+vercel dev -L
+```
+
+Sur Vercel, le GTFS est mis en cache dans `/tmp` et rechargé à chaque démarrage à froid. Les caches (SIRI, alertes) sont propres à chaque instance.
+
 ## Fonctionnalités
 
 | Écran | Contenu |
