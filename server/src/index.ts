@@ -1,4 +1,5 @@
-import { buildApp } from "./app.ts";
+import Fastify from "fastify";
+import { registerApi } from "./api.ts";
 import { config } from "./config.ts";
 import { loadGtfs } from "./gtfs/loader.ts";
 import type { GtfsStore } from "./gtfs/store.ts";
@@ -10,9 +11,29 @@ const log = {
   warn: (m: string) => console.warn(`[bus-hub] ${m}`),
 };
 
-let store: GtfsStore = await loadGtfs(log);
+let store: GtfsStore | undefined;
 let loadedAt = new Date();
-log.info(`GTFS chargé : ${store.lines.size} lignes, ${store.stations.size} arrêts, ${store.trips.size} courses (version ${store.feed.version ?? "?"})`);
+let loading: Promise<GtfsStore> | null = null;
+
+/**
+ * Charge le GTFS une seule fois, même si plusieurs requêtes arrivent pendant le chargement.
+ * En cas d'échec (démarrage à froid sans réseau…), la requête suivante retente.
+ */
+function ensureStore(): Promise<GtfsStore> {
+  if (store) return Promise.resolve(store);
+  loading ??= loadGtfs(log)
+    .then((s) => {
+      store = s;
+      loadedAt = new Date();
+      log.info(`GTFS chargé : ${s.lines.size} lignes, ${s.stations.size} arrêts, ${s.trips.size} courses (version ${s.feed.version ?? "?"})`);
+      return s;
+    })
+    .finally(() => {
+      loading = null;
+    });
+  return loading;
+}
+ensureStore().catch((e) => log.warn(`Chargement initial du GTFS impossible : ${(e as Error).message}`));
 
 const siri = new SiriClient();
 const alerts = new AlertsService();
@@ -31,9 +52,22 @@ setInterval(async () => {
   }
 }, config.gtfs.refreshHours * 3600_000).unref();
 
-const app = await buildApp({ store: () => store, loadedAt: () => loadedAt, siri, alerts }, { logger: config.production });
-await app.listen({ port: config.port, host: config.host });
-log.info(`API prête sur http://localhost:${config.port}`);
+// L'instance Fastify est créée ici : la détection Vercel cherche le fichier d'entrée qui importe fastify
+const app = Fastify({ logger: config.production });
+await registerApi(app, { store: () => store!, loadedAt: () => loadedAt, siri, alerts });
+// Les routes de données attendent la fin du chargement du GTFS
+app.addHook("onRequest", async (req) => {
+  if (req.url.startsWith("/api/") && !req.url.startsWith("/api/health")) await ensureStore();
+});
+
+// Pas de `await` : sur Vercel, listen() est intercepté par le runtime et ne se résout pas
+app.listen({ port: config.port, host: config.host }).then(
+  () => log.info(`API prête sur http://localhost:${config.port}`),
+  (e: Error) => {
+    log.warn(`Démarrage impossible : ${e.message}`);
+    process.exit(1);
+  },
+);
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, async () => {
