@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import type { DeparturesResponse, LineDetail, TimetableResponse, VehiclesResponse } from "@bus-hub/shared";
 import { buildApp } from "../src/api.ts";
 import { AlertsService } from "../src/realtime/alerts.ts";
+import { OfficialSiteService } from "../src/realtime/official.ts";
 import { SiriClient } from "../src/realtime/siri.ts";
 import { fixtureStore, paris } from "./fixture.ts";
 
@@ -9,12 +10,18 @@ const store = fixtureStore();
 const siri = new SiriClient();
 // Désactive tout appel réseau pendant les tests
 siri.stopMonitoring = async () => null;
+const official = new OfficialSiteService();
+official.ensureFresh = async () => {};
+Object.defineProperty(official, "currentPosts", {
+  get: () => [{ title: "Ligne 1 déviée", url: "https://lignes-agglo.fr/infostrafic/x/", publishedAt: null, lineCodes: ["1", "9"], description: "Travaux" }],
+});
 
 const app = await buildApp({
   store: () => store,
   loadedAt: () => new Date(0),
   siri,
   alerts: new AlertsService(),
+  official,
   now: () => paris("07:55"),
 });
 afterAll(() => app.close());
@@ -67,6 +74,17 @@ describe("API", () => {
   it("GET /api/vehicles", async () => {
     const { body } = await get<VehiclesResponse>("/api/vehicles");
     expect(body.vehicles.map((v) => v.tripId)).toEqual([]); // 07:55 : la 300 est terminée, la 100 pas partie
+  });
+
+  it("GET /api/alerts place l'info trafic officielle en premier, rattachée aux lignes", async () => {
+    const { body } = await get<{ alerts: { scope: string; lineIds: string[] }[] }>("/api/alerts");
+    expect(body.alerts[0]).toMatchObject({ scope: "official", lineIds: ["AUB-01"] }); // « 1 » → ligne « 01 », « 9 » inconnue
+  });
+
+  it("GET /api/official renvoie liens et contact", async () => {
+    const { body } = await get<{ links: unknown[]; contact: { phone: string } }>("/api/official");
+    expect(body.links.length).toBeGreaterThan(5);
+    expect(body.contact.phone).toBe("04 42 03 24 25");
   });
 
   it("404 propres", async () => {
