@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import Fastify, { type FastifyInstance } from "fastify";
 import compress from "@fastify/compress";
-import type { LineDetail, MetaResponse, NetworkShape, VehiclesResponse } from "@bus-hub/shared";
+import type { Alert, AlertsResponse, LineDetail, MetaResponse, NetworkShape, VehiclesResponse } from "@bus-hub/shared";
 import { config } from "./config.ts";
 import type { GtfsStore } from "./gtfs/store.ts";
 import { isoToServiceDate, serviceDateOf } from "./gtfs/time.ts";
 import type { AlertsService } from "./realtime/alerts.ts";
+import type { OfficialPost, OfficialSiteService } from "./realtime/official.ts";
 import type { SiriClient } from "./realtime/siri.ts";
 import { getDepartures } from "./services/departures.ts";
 import { nearbyStations, searchStations } from "./services/stations.ts";
@@ -19,7 +20,30 @@ export interface AppDeps {
   loadedAt: () => Date;
   siri: SiriClient;
   alerts: AlertsService;
+  official: OfficialSiteService;
   now?: () => number;
+}
+
+/** « 05 », « 5 » → « 5 » ; « 5s » → « 5S » : rapproche les codes du site officiel des lignes du GTFS. */
+const lineKey = (code: string) => code.trim().toUpperCase().replace(/^0+(?=[0-9A-Z])/, "");
+
+/** Convertit les infos trafic officielles en alertes rattachées aux lignes du GTFS. */
+export function officialAlerts(store: GtfsStore, posts: OfficialPost[]): Alert[] {
+  const byKey = new Map([...store.lines.values()].map((l) => [lineKey(l.shortName), l.id]));
+  return posts.map((p) => ({
+    id: p.url,
+    scope: "official",
+    header: p.title,
+    description: p.description,
+    cause: null,
+    effect: null,
+    url: p.url,
+    lineIds: [...new Set(p.lineCodes.map((c) => byKey.get(lineKey(c))).filter((id): id is string => !!id))],
+    stopIds: [],
+    activePeriods: [],
+    isActive: true,
+    publishedAt: p.publishedAt,
+  }));
 }
 
 const notFound = (what: string) => ({ error: `${what} introuvable` });
@@ -57,8 +81,10 @@ export async function registerApi(app: FastifyInstance, deps: AppDeps): Promise<
       realtime: {
         siri: deps.siri.info(),
         alerts: { state: deps.alerts.state, fetchedAt: deps.alerts.lastFetch },
+        official: { state: deps.official.state, fetchedAt: deps.official.lastFetch },
       },
       sources: [
+        { name: "Lignes de l'Agglo – site officiel du réseau (info trafic, plans)", url: "https://lignes-agglo.fr/", license: "Contenus officiels, liens vers la source" },
         {
           name: "GTFS Agglobus – Les lignes de l'agglo (Métropole Aix-Marseille-Provence)",
           url: "https://transport.data.gouv.fr/datasets/reseaux-de-transports-en-commun-de-la-metropole-daix-marseille-provence-et-des-bouches-du-rhone/",
@@ -130,7 +156,21 @@ export async function registerApi(app: FastifyInstance, deps: AppDeps): Promise<
   });
 
   // --- Alertes
-  app.get("/api/alerts", async () => deps.alerts.response());
+  app.get("/api/alerts", async (): Promise<AlertsResponse> => {
+    await deps.official.ensureFresh();
+    const rt = deps.alerts.response();
+    return {
+      ...rt,
+      // L'info trafic officielle passe en premier
+      alerts: [...officialAlerts(deps.store(), deps.official.currentPosts), ...rt.alerts],
+      official: { fetchedAt: deps.official.lastFetch, error: deps.official.lastError },
+    };
+  });
+
+  app.get("/api/official", async () => {
+    await deps.official.ensureFresh();
+    return deps.official.response();
+  });
 
   // --- Front compilé (production)
   if (fs.existsSync(config.webDist)) {
