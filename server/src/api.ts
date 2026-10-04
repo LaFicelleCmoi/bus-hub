@@ -25,8 +25,15 @@ export interface AppDeps {
 
 const notFound = (what: string) => ({ error: `${what} introuvable` });
 
+/** Instance Fastify prête à l'emploi (utilisée par les tests). */
 export async function buildApp(deps: AppDeps, opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
   const app = Fastify({ logger: opts.logger ?? false });
+  await registerApi(app, deps);
+  return app;
+}
+
+/** Enregistre les routes de l'API (et le front compilé s'il existe) sur une instance Fastify. */
+export async function registerApi(app: FastifyInstance, deps: AppDeps): Promise<void> {
   const now = deps.now ?? Date.now;
   const gps = new GpsCache();
 
@@ -143,6 +150,4 @@ export async function buildApp(deps: AppDeps, opts: { logger?: boolean } = {}): 
       return reply.header("Cache-Control", "no-cache").sendFile("index.html"); // routage côté client
     });
   }
-
-  return app;
 }
