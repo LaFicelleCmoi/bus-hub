@@ -7,6 +7,7 @@ import type {
   MetaResponse,
   NearbyStation,
   NetworkShape,
+  OfficialResponse,
   Station,
   TimetableResponse,
   VehiclesResponse,
@@ -88,3 +89,5 @@ export const useVehicles = (lineId?: string) =>
   });
 
 export const useAlerts = () => useQuery({ queryKey: ["alerts"], queryFn: () => get<AlertsResponse>("/alerts"), refetchInterval: 120_000 });
+
+export const useOfficial = () => useQuery({ queryKey: ["official"], queryFn: () => get<OfficialResponse>("/official"), staleTime: 10 * 60_000 });
