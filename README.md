@@ -57,8 +57,8 @@ Sur Vercel, le GTFS est mis en cache dans `/tmp` et rechargé à chaque démarra
 | **Arrêt** | Tableau des départs avec compte à rebours, filtre par ligne, temps réel s'il est disponible, accessibilité, info trafic des lignes desservies |
 | **Lignes** | Lignes classées par famille (régulières, scolaires, navettes) et nombre de bus en circulation |
 | **Ligne** | Carte du parcours, liste des arrêts, variantes, changement de sens, fiche horaire du jour choisi |
-| **Info trafic** | Perturbations du réseau, et celles des réseaux voisins qui touchent le secteur |
-| **À propos** | État des flux (GTFS, SIRI, alertes), sources et licences |
+| **Info trafic** | Infos trafic officielles de lignes-agglo.fr rattachées aux lignes, puis flux de la Métropole et réseaux voisins |
+| **Réseau** | Contact officiel, plans officiels (PDF), services du site lignes-agglo.fr, état des flux, sources et licences |
 
 ## API
 
@@ -71,7 +71,8 @@ Sur Vercel, le GTFS est mis en cache dans `/tmp` et rechargé à chaque démarra
 | `GET /api/stations?q=` · `/api/stations/nearby?lat=&lon=&radius=` · `/api/stations/:id` | Arrêts |
 | `GET /api/stations/:id/departures?limit=` | Prochains départs (théoriques, enrichis en temps réel si disponible) |
 | `GET /api/vehicles?line=` | Bus en circulation |
-| `GET /api/alerts` | Info trafic |
+| `GET /api/alerts` | Info trafic (officielle puis Métropole) |
+| `GET /api/official` | Plans, liens et contact officiels du réseau |
 
 ## Sources de données et limites
 
@@ -91,6 +92,7 @@ Toutes les sources sont sous **Licence Ouverte 2.0** (Métropole Aix-Marseille-P
 
   Dès que le flux répondra, les départs passeront en temps réel (retard, heure prévue) sans modification. Les positions GPS éventuellement présentes dans les réponses seront aussi utilisées sur la carte. Le format des identifiants d'arrêt se règle avec `SIRI_STOP_REF_TEMPLATE`.
 - **Positions des bus** : en l'absence de GPS, elles sont **estimées**. Chaque course en cours est placée sur son tracé, au prorata de l'heure entre deux arrêts. L'application le signale à l'utilisateur.
+- **Contenus officiels du réseau** : l'info trafic, les plans PDF et les liens de services viennent du site officiel [lignes-agglo.fr](https://lignes-agglo.fr/). Le site n'a pas d'API : le hub lit ses pages publiques toutes les 10 minutes et renvoie toujours vers l'article d'origine.
 - **Info trafic** : flux GTFS-RT Service Alerts de la Métropole (`api-mobilite.rbgl.fr`). Ce flux est hébergé par un tiers et non par la Métropole elle-même.
 - **Fond de carte** : tuiles OpenStreetMap. Pour un usage public à fort trafic, configurez un fournisseur de tuiles avec `VITE_TILE_URL`, conformément à la politique d'usage d'OSM.
 
