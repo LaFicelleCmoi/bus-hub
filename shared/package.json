@@ -1,0 +1,1 @@
+{ "name": "@bus-hub/shared", "private": true, "type": "module", "exports": { ".": "./src/types.ts" } }
