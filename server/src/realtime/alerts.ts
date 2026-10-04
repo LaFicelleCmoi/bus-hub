@@ -89,7 +89,11 @@ export class AlertsService {
 
   async refresh(): Promise<void> {
     try {
-      const res = await fetch(config.alerts.url, { signal: AbortSignal.timeout(20_000) });
+      const res = await fetch(config.alerts.url, {
+        // Le flux est derrière Cloudflare : un User-Agent explicite évite d'être pris pour un robot anonyme
+        headers: { "User-Agent": "bus-hub/1.0 (+https://github.com/LaFicelleCmoi/bus-hub)", Accept: "application/x-protobuf" },
+        signal: AbortSignal.timeout(20_000),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const feed = transit_realtime.FeedMessage.decode(new Uint8Array(await res.arrayBuffer()));
       this.alerts = mapAlerts(feed);
