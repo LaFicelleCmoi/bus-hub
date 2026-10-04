@@ -24,7 +24,10 @@ async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`, { headers: { Accept: "application/json" } });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(res.status, body?.error ?? `Erreur ${res.status}`);
+    // Notre API renvoie { error: "texte" } ; la plateforme Vercel { error: { code, message } }
+    const err = body?.error;
+    const detail = typeof err === "string" ? err : typeof err?.message === "string" ? err.message : null;
+    throw new ApiError(res.status, detail ?? (res.status >= 500 ? `Le serveur est indisponible (erreur ${res.status}).` : `Erreur ${res.status}`));
   }
   return res.json() as Promise<T>;
 }
