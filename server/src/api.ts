@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import Fastify, { type FastifyInstance } from "fastify";
 import compress from "@fastify/compress";
-import fastifyStatic from "@fastify/static";
 import type { LineDetail, MetaResponse, NetworkShape, VehiclesResponse } from "@bus-hub/shared";
 import { config } from "./config.ts";
 import type { GtfsStore } from "./gtfs/store.ts";
@@ -135,6 +134,9 @@ export async function registerApi(app: FastifyInstance, deps: AppDeps): Promise<
 
   // --- Front compilé (production)
   if (fs.existsSync(config.webDist)) {
+    // Import dynamique : inutile sur Vercel (le front y est un service à part), et
+    // @fastify/static fait un require() d'un module ESM que le runtime Vercel refuse.
+    const { default: fastifyStatic } = await import("@fastify/static");
     await app.register(fastifyStatic, {
       root: config.webDist,
       // Les fichiers hachés de Vite peuvent être mis en cache indéfiniment
