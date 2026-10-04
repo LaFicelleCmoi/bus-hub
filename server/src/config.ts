@@ -37,6 +37,13 @@ export const config = {
     backoffMs: int(env.SIRI_BACKOFF_MS, 10 * 60_000),
   },
 
+  official: {
+    // Site officiel du réseau : info trafic et plans
+    baseUrl: env.OFFICIAL_SITE_URL ?? "https://lignes-agglo.fr",
+    refreshMs: int(env.OFFICIAL_REFRESH_MS, 10 * 60_000),
+    maxPosts: int(env.OFFICIAL_MAX_POSTS, 20),
+  },
+
   alerts: {
     url: env.ALERTS_URL ?? "https://api-mobilite.rbgl.fr/api/v1/mamp/getServiceAlerts",
     refreshMs: int(env.ALERTS_REFRESH_MS, 120_000),
