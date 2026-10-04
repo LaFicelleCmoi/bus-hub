@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Route, Routes, useLocation } from "react-router";
+import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from "react-router";
 import { Icon, type IconName } from "./components/Icon";
 import { Empty } from "./components/States";
 import { useAlerts } from "./lib/api";
@@ -15,12 +15,15 @@ const NAV: { to: string; label: string; icon: IconName }[] = [
   { to: "/arrets", label: "Arrêts", icon: "stop" },
   { to: "/lignes", label: "Lignes", icon: "lines" },
   { to: "/info-trafic", label: "Info trafic", icon: "alert" },
-  { to: "/a-propos", label: "À propos", icon: "info" },
+  { to: "/reseau", label: "Réseau", icon: "info" },
 ];
 
 function Layout() {
   const { data: alerts } = useAlerts();
-  const activeAlerts = alerts?.alerts.filter((a) => a.isActive && a.scope === "network").length ?? 0;
+  // Badge : perturbations en cours du réseau et infos officielles des 14 derniers jours
+  const recent = Date.now() - 14 * 86_400_000;
+  const activeAlerts =
+    alerts?.alerts.filter((a) => (a.scope === "official" ? !!a.publishedAt && Date.parse(a.publishedAt) >= recent : a.isActive && a.scope === "network")).length ?? 0;
   const { pathname } = useLocation();
   const isMap = pathname === "/";
 
@@ -65,7 +68,8 @@ export function App() {
         <Route path="lignes" element={<LinesPage />} />
         <Route path="lignes/:id" element={<LinePage />} />
         <Route path="info-trafic" element={<AlertsPage />} />
-        <Route path="a-propos" element={<AboutPage />} />
+        <Route path="reseau" element={<AboutPage />} />
+        <Route path="a-propos" element={<Navigate to="/reseau" replace />} />
         <Route
           path="*"
           element={
