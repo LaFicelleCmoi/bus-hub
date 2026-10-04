@@ -1145,23 +1145,6 @@ button {
   display: block;
   height: 100%;
 }
-.station-dot {
-  fill: #fff;
-  fill-opacity: 1;
-  stroke: #334155;
-}
-.station-dot--dim {
-  opacity: 0.3;
-}
-.station-dot--big {
-  stroke: var(--brand);
-}
-.me-dot {
-  fill: #2563eb;
-  fill-opacity: 1;
-  stroke: #fff;
-  stroke-width: 3;
-}
 .line-path {
   cursor: pointer;
 }
@@ -1331,4 +1314,73 @@ button {
   width: auto;
   pointer-events: none;
   user-select: none;
+}
+
+/* Marqueur « vous êtes ici » */
+.me-icon {
+  background: none;
+  border: 0;
+}
+.me {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+.me__dot,
+.me__pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.me__dot {
+  width: 18px;
+  height: 18px;
+  background: #1a73e8;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.4);
+}
+.me__pulse {
+  width: 18px;
+  height: 18px;
+  background: rgb(26 115 232 / 0.45);
+  animation: me-pulse 2s ease-out infinite;
+}
+@keyframes me-pulse {
+  0% {
+    width: 18px;
+    height: 18px;
+    opacity: 0.9;
+  }
+  100% {
+    width: 44px;
+    height: 44px;
+    opacity: 0;
+  }
+}
+/* Cône d'orientation (affiché quand l'appareil donne une direction) */
+.me__cone {
+  position: absolute;
+  inset: 0;
+}
+.me__cone::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  margin-left: -14px;
+  width: 28px;
+  height: 24px;
+  background: radial-gradient(ellipse at 50% 100%, rgb(26 115 232 / 0.55), rgb(26 115 232 / 0) 70%);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+}
+.fab--active {
+  color: #1a73e8;
+}
+@media (prefers-reduced-motion: reduce) {
+  .me__pulse {
+    animation: none;
+    opacity: 0;
+  }
 }
