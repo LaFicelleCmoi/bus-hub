@@ -1,3 +1,4 @@
+import os from "node:os";
 import path from "node:path";
 
 const env = process.env;
@@ -10,7 +11,8 @@ export const config = {
   host: env.HOST ?? "0.0.0.0",
   production: env.NODE_ENV === "production",
   timezone: "Europe/Paris",
-  dataDir: env.DATA_DIR ?? path.join(root, "data"),
+  // Sur Vercel, seul /tmp est accessible en écriture
+  dataDir: env.DATA_DIR ?? (env.VERCEL ? path.join(os.tmpdir(), "bus-hub") : path.join(root, "data")),
   webDist: path.resolve(root, "../web/dist"),
 
   gtfs: {
