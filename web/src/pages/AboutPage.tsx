@@ -1,6 +1,7 @@
 import type { RealtimeState } from "@bus-hub/shared";
+import { Icon } from "../components/Icon";
 import { ErrorState, Loading } from "../components/States";
-import { useMeta } from "../lib/api";
+import { useMeta, useOfficial } from "../lib/api";
 import { formatDateTime, gtfsDateLabel } from "../lib/time";
 
 const STATE_LABEL: Record<RealtimeState, string> = {
@@ -12,6 +13,7 @@ const STATE_LABEL: Record<RealtimeState, string> = {
 
 export function AboutPage() {
   const { data: meta, isLoading, error } = useMeta();
+  const { data: official } = useOfficial();
   if (isLoading) return <Loading />;
   if (error || !meta) return <ErrorState error={error} />;
   const siri = meta.realtime.siri;
@@ -19,9 +21,59 @@ export function AboutPage() {
   return (
     <div className="page">
       <header className="page__head">
-        <h1>À propos</h1>
+        <h1>Le réseau</h1>
         <p className="muted">{meta.network}</p>
       </header>
+
+      {official && (
+        <>
+          <section className="section">
+            <h2 className="section__title">Contact officiel</h2>
+            <div className="official-contact">
+              <a className="btn btn--primary" href={official.contact.phoneHref}>
+                <Icon name="phone" size={18} /> {official.contact.phone}
+              </a>
+              <a className="btn btn--ghost" href={official.contact.site} target="_blank" rel="noreferrer noopener">
+                lignes-agglo.fr
+              </a>
+            </div>
+          </section>
+
+          {official.documents.length > 0 && (
+            <section className="section">
+              <h2 className="section__title">Plans officiels (PDF)</h2>
+              <ul className="doc-grid">
+                {official.documents.map((d) => (
+                  <li key={d.url}>
+                    <a className="doc-card" href={d.url} target="_blank" rel="noreferrer noopener">
+                      <Icon name="file" />
+                      <span>{d.title}</span>
+                      <Icon name="external" size={16} className="muted" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className="section">
+            <h2 className="section__title">Services officiels</h2>
+            <ul className="list">
+              {official.links.map((l) => (
+                <li key={l.url}>
+                  <a className="station-item" href={l.url} target="_blank" rel="noreferrer noopener">
+                    <div className="station-item__body">
+                      <span className="station-item__name">{l.title}</span>
+                      {l.description && <span className="station-item__city">{l.description}</span>}
+                    </div>
+                    <Icon name="external" size={18} className="muted" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
 
       <section className="section">
         <h2 className="section__title">État des données</h2>
@@ -43,7 +95,12 @@ export function AboutPage() {
               {siri.checkedAt && ` · vérifié le ${formatDateTime(siri.checkedAt)}`}
             </span>
           </dd>
-          <dt>Info trafic (GTFS-RT)</dt>
+          <dt>Info trafic officielle (lignes-agglo.fr)</dt>
+          <dd>
+            <span className={`dot dot--${meta.realtime.official.state}`} /> {STATE_LABEL[meta.realtime.official.state]}
+            {meta.realtime.official.fetchedAt && <span className="muted small"> · mis à jour le {formatDateTime(meta.realtime.official.fetchedAt)}</span>}
+          </dd>
+          <dt>Info trafic Métropole (GTFS-RT)</dt>
           <dd>
             <span className={`dot dot--${meta.realtime.alerts.state}`} /> {STATE_LABEL[meta.realtime.alerts.state]}
             {meta.realtime.alerts.fetchedAt && <span className="muted small"> · mis à jour le {formatDateTime(meta.realtime.alerts.fetchedAt)}</span>}
