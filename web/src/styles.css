@@ -1320,3 +1320,15 @@ button {
     margin-right: 0;
   }
 }
+
+/* Logo Google Maps : obligatoire avec les tuiles Google, non modifié, sans chevauchement */
+.gmaps-logo {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  z-index: 800;
+  height: 18px;
+  width: auto;
+  pointer-events: none;
+  user-select: none;
+}
