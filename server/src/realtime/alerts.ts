@@ -67,6 +67,7 @@ export function mapAlerts(feed: FeedMessage, now = Date.now()): Alert[] {
         end: p.end ? new Date(p.end * 1000).toISOString() : null,
       })),
       isActive,
+      publishedAt: null,
     });
   }
 
@@ -114,7 +115,7 @@ export class AlertsService {
     if (this.timer) clearInterval(this.timer);
   }
 
-  response(): AlertsResponse {
+  response(): Omit<AlertsResponse, "official"> {
     return { alerts: this.alerts, fetchedAt: this.fetchedAt, error: this.error };
   }
 
