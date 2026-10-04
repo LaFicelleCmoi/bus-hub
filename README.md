@@ -94,6 +94,11 @@ Toutes les sources sont sous **Licence Ouverte 2.0** (Métropole Aix-Marseille-P
 - **Positions des bus** : en l'absence de GPS, elles sont **estimées**. Chaque course en cours est placée sur son tracé, au prorata de l'heure entre deux arrêts. L'application le signale à l'utilisateur.
 - **Contenus officiels du réseau** : l'info trafic, les plans PDF et les liens de services viennent du site officiel [lignes-agglo.fr](https://lignes-agglo.fr/). Le site n'a pas d'API : le hub lit ses pages publiques toutes les 10 minutes et renvoie toujours vers l'article d'origine.
 - **Info trafic** : flux GTFS-RT Service Alerts de la Métropole (`api-mobilite.rbgl.fr`). Ce flux est hébergé par un tiers et non par la Métropole elle-même.
-- **Fond de carte** : tuiles OpenStreetMap. Pour un usage public à fort trafic, configurez un fournisseur de tuiles avec `VITE_TILE_URL`, conformément à la politique d'usage d'OSM.
+- **Fond de carte** : Google Maps, via la Map Tiles API officielle (tuiles 2D, avec le logo et l'attribution exigés par Google), si `VITE_GOOGLE_MAPS_API_KEY` est défini au build. Pour obtenir la clé :
+  1. Dans Google Cloud, activer la **Map Tiles API** (un compte de facturation est requis).
+  2. Créer une clé API, restreinte aux référents HTTP du site (`https://bus-hub-rab3.vercel.app/*`, `http://localhost:5173/*`) et à la seule Map Tiles API.
+  3. La déclarer dans les variables d'environnement Vercel, puis redéployer.
+
+  Sans clé, ou si Google la refuse, la carte revient automatiquement sur OpenStreetMap (`VITE_TILE_URL` pour un autre fournisseur).
 
 Cette application n'est pas officielle. Pour toute information faisant foi, référez-vous à [lignes-agglo.fr](https://lignes-agglo.fr/).
