@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { CircleMarker, Polyline } from "react-leaflet";
+import { Polyline } from "react-leaflet";
 import { useSearchParams } from "react-router";
 import { BaseMap, FitBounds, FlyTo } from "../components/map/BaseMap";
 import { StationLayer } from "../components/map/StationLayer";
+import { UserLocation } from "../components/map/UserLocation";
 import { VehicleLayer } from "../components/map/VehicleLayer";
 import { Icon } from "../components/Icon";
 import { LineBadge } from "../components/LineBadge";
@@ -18,7 +19,7 @@ export function MapPage() {
   const { data: shapes } = useShapes();
   const { data: stations } = useStations();
   const { data: vehiclesRes } = useVehicles();
-  const geo = useGeolocation();
+  const geo = useGeolocation({ watch: true });
 
   const vehicles = vehiclesRes?.vehicles ?? [];
   const runningByLine = useMemo(() => {
@@ -38,7 +39,7 @@ export function MapPage() {
       <BaseMap className="map--full">
         {meta && <FitBounds bounds={meta.bounds} fitKey="network" maxZoom={13} />}
         {selectedBounds && selectedBounds.length > 0 && <FitBounds bounds={selectedBounds} fitKey={`line-${selected}`} />}
-        {geo.pos && <FlyTo to={[geo.pos.lat, geo.pos.lon]} />}
+        <FlyTo to={geo.pos ? [geo.pos.lat, geo.pos.lon] : null} trigger={geo.requestId} />
 
         {shapes?.map((s) => {
           const isSel = s.lineId === selected;
@@ -55,7 +56,7 @@ export function MapPage() {
 
         {stations && <StationLayer stations={stations} highlight={selected} />}
         <VehicleLayer vehicles={visibleVehicles} highlightLine={selected} />
-        {geo.pos && <CircleMarker center={[geo.pos.lat, geo.pos.lon]} radius={8} pathOptions={{ className: "me-dot" }} />}
+        {geo.pos && <UserLocation pos={geo.pos} />}
       </BaseMap>
 
       <section className="map-panel" aria-label="Filtres de la carte">
@@ -92,7 +93,7 @@ export function MapPage() {
         </p>
       </section>
 
-      <button type="button" className="fab" onClick={geo.locate} title="Me localiser" aria-label="Me localiser">
+      <button type="button" className={`fab ${geo.status === "ok" ? "fab--active" : ""}`} onClick={geo.locate} title="Me localiser" aria-label="Me localiser">
         {geo.status === "loading" ? <span className="spinner" /> : <Icon name="locate" />}
       </button>
       {geo.error && (
