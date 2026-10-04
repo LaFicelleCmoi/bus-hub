@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import type { DeparturesResponse, LineDetail, TimetableResponse, VehiclesResponse } from "@bus-hub/shared";
-import { buildApp } from "../src/app.ts";
+import { buildApp } from "../src/api.ts";
 import { AlertsService } from "../src/realtime/alerts.ts";
 import { SiriClient } from "../src/realtime/siri.ts";
 import { fixtureStore, paris } from "./fixture.ts";
