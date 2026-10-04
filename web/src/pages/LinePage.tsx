@@ -49,6 +49,15 @@ export function LinePage() {
         <AlertCard key={a.id} alert={a} collapsed />
       ))}
 
+      <div className="official-links">
+        <a href="https://lignes-agglo.fr/les-fiches-horaires/" target="_blank" rel="noreferrer noopener">
+          <Icon name="file" size={16} /> Fiche horaire officielle
+        </a>
+        <a href="https://lignes-agglo.fr/calculer-votre-itineraire/" target="_blank" rel="noreferrer noopener">
+          <Icon name="external" size={16} /> Itinéraire sur lignes-agglo.fr
+        </a>
+      </div>
+
       <div className="toolbar">
         <div className="segmented" role="tablist">
           <button role="tab" aria-selected={tab === "parcours"} className={tab === "parcours" ? "is-active" : ""} onClick={() => setParam("vue", "parcours")}>
