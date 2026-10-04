@@ -6,6 +6,7 @@ import { AlertCard } from "../components/AlertCard";
 import { Icon } from "../components/Icon";
 import { LineBadge } from "../components/LineBadge";
 import { BaseMap, FitBounds } from "../components/map/BaseMap";
+import { STATION_DOT } from "../components/map/StationLayer";
 import { VehicleLayer } from "../components/map/VehicleLayer";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { useAlerts, useLine, useStations, useTimetable, useVehicles } from "../lib/api";
@@ -108,7 +109,7 @@ function RouteView({ line, direction }: { line: LineDetail; direction: number })
           <FitBounds bounds={pattern.shape} fitKey={`${line.id}-${direction}-${variant}`} />
           <Polyline positions={pattern.shape} pathOptions={{ color: line.color, weight: 6, opacity: 0.9 }} />
           {pattern.stops.map((s, i) => (
-            <CircleMarker key={`${s.id}-${i}`} center={[s.lat, s.lon]} radius={5} pathOptions={{ className: "station-dot", weight: 2 }}>
+            <CircleMarker key={`${s.id}-${i}`} center={[s.lat, s.lon]} radius={5} pathOptions={STATION_DOT}>
               <Tooltip direction="top">{s.name}</Tooltip>
             </CircleMarker>
           ))}
