@@ -4,6 +4,9 @@ import { Link } from "react-router";
 import type { Station } from "@bus-hub/shared";
 import { LineBadges } from "../LineBadge";
 
+/** Style des points d'arrêt. Couleurs en dur : avec preferCanvas, Leaflet ignore les classes CSS. */
+export const STATION_DOT = { color: "#334155", weight: 2, fillColor: "#ffffff", fillOpacity: 1 } as const;
+
 /** Arrêts du réseau ; masqués aux petits zooms pour garder la carte lisible. */
 export function StationLayer({ stations, minZoom = 14, highlight }: { stations: Station[]; minZoom?: number; highlight?: string | null }) {
   const [zoom, setZoom] = useState<number | null>(null);
@@ -20,7 +23,7 @@ export function StationLayer({ stations, minZoom = 14, highlight }: { stations: 
             key={s.id}
             center={[s.lat, s.lon]}
             radius={z >= 16 ? 7 : 5}
-            pathOptions={{ className: `station-dot ${active ? "" : "station-dot--dim"}`, weight: 2 }}
+            pathOptions={{ ...STATION_DOT, opacity: active ? 1 : 0.3, fillOpacity: active ? 1 : 0.3 }}
           >
             <Popup>
               <div className="popup">
