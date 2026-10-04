@@ -113,7 +113,12 @@ export interface TimetableResponse {
   trips: { tripId: string; times: (string | null)[] }[];
 }
 
-export type AlertScope = "network" | "nearby";
+/**
+ * official : info trafic publiée sur lignes-agglo.fr (source officielle du réseau)
+ * network  : flux GTFS-RT de la Métropole, lignes du réseau
+ * nearby   : flux GTFS-RT, réseaux voisins touchant le secteur d'Aubagne
+ */
+export type AlertScope = "official" | "network" | "nearby";
 
 export interface Alert {
   id: string;
@@ -127,12 +132,17 @@ export interface Alert {
   stopIds: string[];
   activePeriods: { start: string | null; end: string | null }[];
   isActive: boolean;
+  /** Date de publication (info trafic officielle) */
+  publishedAt: string | null;
 }
 
 export interface AlertsResponse {
   alerts: Alert[];
+  /** Flux GTFS-RT de la Métropole */
   fetchedAt: string | null;
   error: string | null;
+  /** Info trafic officielle de lignes-agglo.fr */
+  official: { fetchedAt: string | null; error: string | null };
 }
 
 export type RealtimeState = "ok" | "degraded" | "unavailable" | "disabled";
@@ -141,6 +151,21 @@ export interface RealtimeInfo {
   state: RealtimeState;
   message: string;
   checkedAt: string | null;
+}
+
+export interface OfficialLink {
+  title: string;
+  url: string;
+  description?: string;
+}
+
+export interface OfficialResponse {
+  /** Plans du réseau publiés sur le site officiel (PDF) */
+  documents: OfficialLink[];
+  links: OfficialLink[];
+  contact: { phone: string; phoneHref: string; site: string };
+  fetchedAt: string | null;
+  error: string | null;
 }
 
 export interface MetaResponse {
@@ -154,6 +179,7 @@ export interface MetaResponse {
   realtime: {
     siri: RealtimeInfo & { stopMonitoring: RealtimeState; quotaPerMinute: number };
     alerts: { state: RealtimeState; fetchedAt: string | null };
+    official: { state: RealtimeState; fetchedAt: string | null };
   };
   sources: { name: string; url: string; license: string }[];
 }
