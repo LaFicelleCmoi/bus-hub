@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L, { type LatLngBoundsExpression, type LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -51,11 +51,15 @@ export function FitBounds({ bounds, fitKey, maxZoom = 16 }: { bounds: LatLngBoun
   return null;
 }
 
-/** Recentre la carte sur un point (géolocalisation…). */
-export function FlyTo({ to, zoom = 16 }: { to: [number, number] | null; zoom?: number }) {
+/** Recentre la carte sur un point, une fois par valeur de `trigger` (pas à chaque mise à jour du GPS). */
+export function FlyTo({ to, trigger, zoom = 16 }: { to: [number, number] | null; trigger: number; zoom?: number }) {
   const map = useMap();
+  const done = useRef(0);
   useEffect(() => {
-    if (to) map.flyTo(to, zoom, { duration: 0.8 });
-  }, [map, to, zoom]);
+    if (to && trigger !== done.current) {
+      done.current = trigger;
+      map.flyTo(to, Math.max(map.getZoom(), zoom), { duration: 0.8 });
+    }
+  }, [map, to, trigger, zoom]);
   return null;
 }
