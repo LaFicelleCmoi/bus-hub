@@ -1237,3 +1237,86 @@ button {
     font-size: 0.95rem;
   }
 }
+
+/* ---------- Contenus officiels ---------- */
+.tag--official {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+.alert-card--official {
+  border-left-color: var(--brand);
+}
+.alert-card--official .alert-card__head {
+  color: var(--brand);
+}
+.official-contact {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.official-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.official-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.official-links a:hover {
+  text-decoration: underline;
+}
+.doc-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.doc-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.doc-card > span {
+  flex: 1;
+}
+.doc-card > svg:first-child {
+  color: var(--danger);
+  flex: none;
+}
+.doc-card:hover {
+  border-color: var(--brand);
+}
+.note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+}
+.note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.nav__icon:has(.nav__badge) {
+  margin-right: 8px;
+}
+@media (max-width: 760px) {
+  .nav__icon:has(.nav__badge) {
+    margin-right: 0;
+  }
+}
