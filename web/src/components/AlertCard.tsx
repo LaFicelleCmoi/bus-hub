@@ -1,5 +1,5 @@
 import type { Alert } from "@bus-hub/shared";
-import { formatDateTime } from "../lib/time";
+import { formatDateTime, formatDay } from "../lib/time";
 import { Icon } from "./Icon";
 import { LineBadges } from "./LineBadge";
 
@@ -22,17 +22,24 @@ function period(p: Alert["activePeriods"][number]): string {
   return "";
 }
 
+const SCOPE_LABEL: Record<Alert["scope"], string> = {
+  official: "Officiel · lignes-agglo.fr",
+  network: "Lignes de l'Agglo · flux Métropole",
+  nearby: "Réseau voisin, secteur d'Aubagne",
+};
+
 export function AlertCard({ alert, collapsed = false }: { alert: Alert; collapsed?: boolean }) {
   const effect = alert.effect ? EFFECTS[alert.effect] : null;
   return (
-    <article className={`alert-card ${alert.isActive ? "" : "alert-card--upcoming"}`}>
+    <article className={`alert-card ${alert.scope === "official" ? "alert-card--official" : ""} ${alert.isActive ? "" : "alert-card--upcoming"}`}>
       <header className="alert-card__head">
         <Icon name="alert" />
         <div>
           <h3>{alert.header || "Perturbation"}</h3>
           <p className="alert-card__tags">
             {effect && <span className="tag">{effect}</span>}
-            <span className="tag tag--muted">{alert.scope === "network" ? "Lignes de l'Agglo" : "Réseau voisin, secteur d'Aubagne"}</span>
+            <span className={`tag ${alert.scope === "official" ? "tag--official" : "tag--muted"}`}>{SCOPE_LABEL[alert.scope]}</span>
+            {alert.publishedAt && <span className="tag tag--muted">Publié le {formatDay(alert.publishedAt)}</span>}
             {!alert.isActive && <span className="tag tag--muted">À venir / terminée</span>}
           </p>
         </div>
@@ -48,7 +55,7 @@ export function AlertCard({ alert, collapsed = false }: { alert: Alert; collapse
       {alert.activePeriods.length > 0 && <p className="alert-card__period">{alert.activePeriods.map(period).filter(Boolean).join(" · ")}</p>}
       {alert.url && (
         <a href={alert.url} target="_blank" rel="noreferrer noopener">
-          En savoir plus
+          {alert.scope === "official" ? "Lire sur lignes-agglo.fr" : "En savoir plus"}
         </a>
       )}
     </article>
