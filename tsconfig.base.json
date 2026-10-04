@@ -11,6 +11,11 @@
     "erasableSyntaxOnly": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@bus-hub/shared": [
+        "./shared/src/types.ts"
+      ]
+    }
   }
 }
