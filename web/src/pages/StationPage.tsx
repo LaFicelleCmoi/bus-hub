@@ -7,6 +7,7 @@ import { FavoriteButton } from "../components/FavoriteButton";
 import { Icon } from "../components/Icon";
 import { LineBadge, useLineMap } from "../components/LineBadge";
 import { BaseMap } from "../components/map/BaseMap";
+import { STATION_DOT } from "../components/map/StationLayer";
 import { RealtimeStatus } from "../components/RealtimeStatus";
 import { Empty, ErrorState, Loading } from "../components/States";
 import { useAlerts, useDepartures } from "../lib/api";
@@ -84,7 +85,7 @@ export function StationPage() {
 
         <aside className="station-side">
           <BaseMap className="map--card map--small" center={[station.lat, station.lon]} zoom={17}>
-            <CircleMarker center={[station.lat, station.lon]} radius={9} pathOptions={{ className: "station-dot station-dot--big", weight: 3 }} />
+            <CircleMarker center={[station.lat, station.lon]} radius={9} pathOptions={{ ...STATION_DOT, color: "#0f766e", weight: 4 }} />
           </BaseMap>
           <a className="btn btn--ghost" href={`https://www.openstreetmap.org/directions?to=${station.lat}%2C${station.lon}`} target="_blank" rel="noreferrer noopener">
             Itinéraire à pied jusqu'à l'arrêt
