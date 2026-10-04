@@ -4,6 +4,7 @@ import { config } from "./config.ts";
 import { loadGtfs } from "./gtfs/loader.ts";
 import type { GtfsStore } from "./gtfs/store.ts";
 import { AlertsService } from "./realtime/alerts.ts";
+import { OfficialSiteService } from "./realtime/official.ts";
 import { SiriClient } from "./realtime/siri.ts";
 
 const log = {
@@ -38,6 +39,8 @@ ensureStore().catch((e) => log.warn(`Chargement initial du GTFS impossible : ${(
 const siri = new SiriClient();
 const alerts = new AlertsService();
 alerts.start();
+const official = new OfficialSiteService();
+official.start();
 void siri.checkStatus();
 setInterval(() => void siri.checkStatus(), 5 * 60_000).unref();
 
@@ -54,7 +57,7 @@ setInterval(async () => {
 
 // L'instance Fastify est créée ici : la détection Vercel cherche le fichier d'entrée qui importe fastify
 const app = Fastify({ logger: config.production });
-await registerApi(app, { store: () => store!, loadedAt: () => loadedAt, siri, alerts });
+await registerApi(app, { store: () => store!, loadedAt: () => loadedAt, siri, alerts, official });
 // Les routes de données attendent la fin du chargement du GTFS
 app.addHook("onRequest", async (req) => {
   if (req.url.startsWith("/api/") && !req.url.startsWith("/api/health")) await ensureStore();
@@ -72,6 +75,7 @@ app.listen({ port: config.port, host: config.host }).then(
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, async () => {
     alerts.stop();
+    official.stop();
     await app.close();
     process.exit(0);
   });
